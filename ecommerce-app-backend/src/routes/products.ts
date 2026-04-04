@@ -36,6 +36,17 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+// Get product categories
+router.get('/categories/list', async (req: Request, res: Response) => {
+  try {
+    const categories = await productModel.getCategories();
+    res.json({ categories });
+  } catch (error) {
+    console.error('Get categories error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get product by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
@@ -52,17 +63,6 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json({ product });
   } catch (error) {
     console.error('Get product error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Get product categories
-router.get('/categories/list', async (req: Request, res: Response) => {
-  try {
-    const categories = await productModel.getCategories();
-    res.json({ categories });
-  } catch (error) {
-    console.error('Get categories error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

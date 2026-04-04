@@ -27,22 +27,22 @@ export class CartModel {
 
   async addToCart(cartData: CreateCartItemData): Promise<CartItem> {
     // Check if item already exists in cart
-    const existingItemQuery = 'SELECT * FROM CartItems WHERE userId = @userId AND productId = @productId';
+    const existingItemQuery = 'SELECT * FROM CartItems WHERE userId = @param0 AND productId = @param1';
     const existingResult = await this.db.executeQuery(existingItemQuery, [cartData.userId, cartData.productId]);
     
     if (existingResult.recordset[0]) {
       // Update quantity
       const updateQuery = `
         UPDATE CartItems 
-        SET quantity = quantity + @quantity, updatedAt = GETDATE()
+        SET quantity = quantity + @param0, updatedAt = GETDATE()
         OUTPUT INSERTED.*
-        WHERE userId = @userId AND productId = @productId
+        WHERE userId = @param1 AND productId = @param2
       `;
       const updateResult = await this.db.executeQuery(updateQuery, [cartData.quantity, cartData.userId, cartData.productId]);
       return updateResult.recordset[0];
     } else {
       // Get product details
-      const productQuery = 'SELECT name, price, imageUrl FROM Products WHERE id = @productId AND isActive = 1';
+      const productQuery = 'SELECT name, price, imageUrl FROM Products WHERE id = @param0 AND isActive = 1';
       const productResult = await this.db.executeQuery(productQuery, [cartData.productId]);
       
       if (!productResult.recordset[0]) {
@@ -55,7 +55,7 @@ export class CartModel {
       const insertQuery = `
         INSERT INTO CartItems (userId, productId, quantity, productName, productPrice, productImageUrl, createdAt, updatedAt)
         OUTPUT INSERTED.*
-        VALUES (@userId, @productId, @quantity, @productName, @productPrice, @productImageUrl, GETDATE(), GETDATE())
+        VALUES (@param0, @param1, @param2, @param3, @param4, @param5, GETDATE(), GETDATE())
       `;
 
       const result = await this.db.executeQuery(insertQuery, [
@@ -72,7 +72,7 @@ export class CartModel {
   }
 
   async getCartItems(userId: number): Promise<CartItem[]> {
-    const query = 'SELECT * FROM CartItems WHERE userId = @userId ORDER BY createdAt DESC';
+    const query = 'SELECT * FROM CartItems WHERE userId = @param0 ORDER BY createdAt DESC';
     const result = await this.db.executeQuery(query, [userId]);
     return result.recordset;
   }
@@ -85,9 +85,9 @@ export class CartModel {
 
     const query = `
       UPDATE CartItems 
-      SET quantity = @quantity, updatedAt = GETDATE()
+      SET quantity = @param0, updatedAt = GETDATE()
       OUTPUT INSERTED.*
-      WHERE userId = @userId AND productId = @productId
+      WHERE userId = @param1 AND productId = @param2
     `;
 
     const result = await this.db.executeQuery(query, [quantity, userId, productId]);
@@ -95,25 +95,25 @@ export class CartModel {
   }
 
   async removeFromCart(userId: number, productId: number): Promise<boolean> {
-    const query = 'DELETE FROM CartItems WHERE userId = @userId AND productId = @productId';
+    const query = 'DELETE FROM CartItems WHERE userId = @param0 AND productId = @param1';
     const result = await this.db.executeQuery(query, [userId, productId]);
     return result.rowsAffected[0] > 0;
   }
 
   async clearCart(userId: number): Promise<boolean> {
-    const query = 'DELETE FROM CartItems WHERE userId = @userId';
+    const query = 'DELETE FROM CartItems WHERE userId = @param0';
     const result = await this.db.executeQuery(query, [userId]);
     return result.rowsAffected[0] > 0;
   }
 
   async getCartTotal(userId: number): Promise<number> {
-    const query = 'SELECT SUM(quantity * productPrice) as total FROM CartItems WHERE userId = @userId';
+    const query = 'SELECT SUM(quantity * productPrice) as total FROM CartItems WHERE userId = @param0';
     const result = await this.db.executeQuery(query, [userId]);
     return result.recordset[0].total || 0;
   }
 
   async getCartItemCount(userId: number): Promise<number> {
-    const query = 'SELECT SUM(quantity) as count FROM CartItems WHERE userId = @userId';
+    const query = 'SELECT SUM(quantity) as count FROM CartItems WHERE userId = @param0';
     const result = await this.db.executeQuery(query, [userId]);
     return result.recordset[0].count || 0;
   }

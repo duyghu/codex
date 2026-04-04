@@ -86,11 +86,19 @@ export class OrderModel {
         `;
 
         // Get product details
-        const productQuery = 'SELECT name, imageUrl FROM Products WHERE id = @productId';
+        const productQuery = 'SELECT name, imageUrl, stock, isActive FROM Products WHERE id = @productId';
         const productRequest = transaction.request();
         productRequest.input('productId', item.productId);
         const productResult = await productRequest.query(productQuery);
         const product = productResult.recordset[0];
+
+        if (!product || !product.isActive) {
+          throw new Error(`Product ${item.productId} is not available`);
+        }
+
+        if (product.stock < item.quantity) {
+          throw new Error(`Insufficient stock for product ${item.productId}`);
+        }
 
         const itemRequest = transaction.request();
         itemRequest.input('orderId', order.id);
@@ -125,7 +133,7 @@ export class OrderModel {
   }
 
   async getOrderById(id: number): Promise<Order | null> {
-    const orderQuery = 'SELECT * FROM Orders WHERE id = @id';
+    const orderQuery = 'SELECT * FROM Orders WHERE id = @param0';
     const orderResult = await this.db.executeQuery(orderQuery, [id]);
     
     if (!orderResult.recordset[0]) {
@@ -134,7 +142,7 @@ export class OrderModel {
 
     const order = orderResult.recordset[0];
 
-    const itemsQuery = 'SELECT * FROM OrderItems WHERE orderId = @orderId';
+    const itemsQuery = 'SELECT * FROM OrderItems WHERE orderId = @param0';
     const itemsResult = await this.db.executeQuery(itemsQuery, [id]);
 
     return {
@@ -147,24 +155,24 @@ export class OrderModel {
     const offset = (page - 1) * limit;
 
     // Get total count
-    const countQuery = 'SELECT COUNT(*) as total FROM Orders WHERE userId = @userId';
+    const countQuery = 'SELECT COUNT(*) as total FROM Orders WHERE userId = @param0';
     const countResult = await this.db.executeQuery(countQuery, [userId]);
     const total = countResult.recordset[0].total;
 
     // Get orders
     const ordersQuery = `
       SELECT * FROM Orders 
-      WHERE userId = @userId
+      WHERE userId = @param0
       ORDER BY createdAt DESC
-      OFFSET @offset ROWS
-      FETCH NEXT @limit ROWS ONLY
+      OFFSET @param1 ROWS
+      FETCH NEXT @param2 ROWS ONLY
     `;
     const ordersResult = await this.db.executeQuery(ordersQuery, [userId, offset, limit]);
 
     // Get items for each order
     const orders: Order[] = [];
     for (const order of ordersResult.recordset) {
-      const itemsQuery = 'SELECT * FROM OrderItems WHERE orderId = @orderId';
+      const itemsQuery = 'SELECT * FROM OrderItems WHERE orderId = @param0';
       const itemsResult = await this.db.executeQuery(itemsQuery, [order.id]);
       
       orders.push({
@@ -188,15 +196,15 @@ export class OrderModel {
     const ordersQuery = `
       SELECT * FROM Orders 
       ORDER BY createdAt DESC
-      OFFSET @offset ROWS
-      FETCH NEXT @limit ROWS ONLY
+      OFFSET @param0 ROWS
+      FETCH NEXT @param1 ROWS ONLY
     `;
     const ordersResult = await this.db.executeQuery(ordersQuery, [offset, limit]);
 
     // Get items for each order
     const orders: Order[] = [];
     for (const order of ordersResult.recordset) {
-      const itemsQuery = 'SELECT * FROM OrderItems WHERE orderId = @orderId';
+      const itemsQuery = 'SELECT * FROM OrderItems WHERE orderId = @param0';
       const itemsResult = await this.db.executeQuery(itemsQuery, [order.id]);
       
       orders.push({

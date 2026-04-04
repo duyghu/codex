@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { User, Save, Eye, EyeOff } from 'lucide-react';
+import { User, Save } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { authAPI } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
@@ -24,7 +24,6 @@ const Profile: React.FC = () => {
   const { user, updateUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,

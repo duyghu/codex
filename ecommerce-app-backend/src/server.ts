@@ -21,6 +21,7 @@ const PORT = process.env.PORT || 3001;
 
 // Initialize database
 const database = Database.getInstance();
+const shouldInitializeDatabase = process.env.INIT_DB_ON_STARTUP !== 'false';
 
 // Rate limiting
 const limiter = rateLimit({
@@ -75,9 +76,19 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+  let databaseStatus = 'disconnected';
+
+  try {
+    await database.executeQuery('SELECT 1 as healthy');
+    databaseStatus = 'connected';
+  } catch (error) {
+    databaseStatus = 'unavailable';
+  }
+
   res.json({ 
     status: 'OK', 
+    database: databaseStatus,
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -127,9 +138,12 @@ const startServer = async () => {
     // Connect to database
     await database.connect();
     
-    // Initialize database schema and sample data
-    const dbInitializer = new DatabaseInitializer();
-    await dbInitializer.initialize();
+    if (shouldInitializeDatabase) {
+      const dbInitializer = new DatabaseInitializer();
+      await dbInitializer.initialize();
+    } else {
+      console.log('Database initialization skipped because INIT_DB_ON_STARTUP=false');
+    }
     
     // Start listening
     app.listen(PORT, () => {

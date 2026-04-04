@@ -119,7 +119,7 @@ export class UserModel {
   }
 
   async deleteUser(id: number): Promise<boolean> {
-    const query = 'DELETE FROM Users WHERE id = @id';
+    const query = 'DELETE FROM Users WHERE id = @param0';
     const result = await this.db.executeQuery(query, [id]);
     return result.rowsAffected[0] > 0;
   }
