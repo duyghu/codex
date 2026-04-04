@@ -105,6 +105,7 @@ INSERT INTO Users (email, password, firstName, lastName, isAdmin) VALUES
 ('admin@ecommerce.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K5K5K2', 'Admin', 'User', 1);
 
 -- Create triggers for updatedAt timestamps
+GO
 CREATE TRIGGER TR_Users_UpdatedAt
 ON Users
 AFTER UPDATE
@@ -117,6 +118,7 @@ BEGIN
     INNER JOIN inserted i ON u.id = i.id;
 END;
 
+GO
 CREATE TRIGGER TR_Products_UpdatedAt
 ON Products
 AFTER UPDATE
@@ -129,6 +131,7 @@ BEGIN
     INNER JOIN inserted i ON p.id = i.id;
 END;
 
+GO
 CREATE TRIGGER TR_CartItems_UpdatedAt
 ON CartItems
 AFTER UPDATE
@@ -141,6 +144,7 @@ BEGIN
     INNER JOIN inserted i ON c.id = i.id;
 END;
 
+GO
 CREATE TRIGGER TR_Orders_UpdatedAt
 ON Orders
 AFTER UPDATE
