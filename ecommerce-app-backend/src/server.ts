@@ -1,3 +1,4 @@
+import './telemetry';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -18,6 +19,9 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Azure Container Apps and Application Gateway forward client IPs via X-Forwarded-* headers.
+app.set('trust proxy', 1);
 
 // Initialize database
 const database = Database.getInstance();

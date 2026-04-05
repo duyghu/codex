@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import './index.css';
 import App from './App';
+import './telemetry';
 
 // Create a client
 const queryClient = new QueryClient({
